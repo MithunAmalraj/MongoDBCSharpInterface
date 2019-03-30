@@ -16,7 +16,7 @@ namespace MDAL
 
         public MongoClient mongoClient = new MongoClient();
         private List<IDictionary<string, object>> parent = new List<IDictionary<string, object>>();
-        private string VConfigPath = AppDomain.CurrentDomain.BaseDirectory + @"VConfig.xml";
+        private string VConfigPath = AppDomain.CurrentDomain.BaseDirectory + @"MConfig.xml";
         private string ConnectionString = "";
         private string DatabaseName = "";
 
