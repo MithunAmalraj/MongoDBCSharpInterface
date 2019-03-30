@@ -30,7 +30,7 @@ namespace MDAL
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(VConfigPath);
-                XmlNodeList xNodeList = doc.SelectNodes("/VCONFIG/Item/VDBMongoConnection");
+                XmlNodeList xNodeList = doc.SelectNodes("/MCONFIG/Item/VDBMongoConnection");
                 XmlNode connection_string = xNodeList[0];
                 if (connection_string != null)
                 {
@@ -51,7 +51,7 @@ namespace MDAL
             {
                 XmlDocument doc = new XmlDocument();
                 doc.Load(VConfigPath);
-                XmlNodeList xNodeList = doc.SelectNodes("/VCONFIG/Item/" + connenction);
+                XmlNodeList xNodeList = doc.SelectNodes("/MCONFIG/Item/" + connenction);
                 XmlNode connection_string = xNodeList[0];
                 if (connection_string != null)
                 {
