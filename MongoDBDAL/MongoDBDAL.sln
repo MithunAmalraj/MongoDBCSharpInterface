@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28721.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDBDAL", "MongoDBDAL\MongoDBDAL.csproj", "{391CDD1F-8C4D-44C3-9236-85D3DF0D6255}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{391CDD1F-8C4D-44C3-9236-85D3DF0D6255}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{391CDD1F-8C4D-44C3-9236-85D3DF0D6255}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{391CDD1F-8C4D-44C3-9236-85D3DF0D6255}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{391CDD1F-8C4D-44C3-9236-85D3DF0D6255}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0FBEA2A1-2C18-4527-BFAB-D1EDEA5DDB65}
+	EndGlobalSection
+EndGlobal

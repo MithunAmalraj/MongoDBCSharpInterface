@@ -40,7 +40,7 @@ namespace MDAL
                     mongoClient = new MongoClient(settings);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -61,7 +61,7 @@ namespace MDAL
                     mongoClient = new MongoClient(settings);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -82,7 +82,7 @@ namespace MDAL
                 var stats = DB.RunCommand<BsonDocument>(command);
                 return stats.ToJson();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -100,7 +100,7 @@ namespace MDAL
                 var stats = DB.RunCommand<BsonDocument>(command);
                 return stats.ToJson();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -125,7 +125,7 @@ namespace MDAL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return bsonDocList.ToJson();
@@ -140,7 +140,7 @@ namespace MDAL
             {
                 return DatabaseName;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -164,7 +164,7 @@ namespace MDAL
                     db.CreateCollection(CollectionName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -178,7 +178,7 @@ namespace MDAL
             {
                 mongoClient.DropDatabase(DatabaseName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -192,7 +192,7 @@ namespace MDAL
             {
                 await mongoClient.DropDatabaseAsync(DatabaseName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -217,7 +217,7 @@ namespace MDAL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return bsonDocList.ToJson();
@@ -235,7 +235,7 @@ namespace MDAL
                 var stats = db.RunCommand(command);
                 stats.ToJson();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -259,7 +259,7 @@ namespace MDAL
                     db.CreateCollection(CollectionName);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -274,7 +274,7 @@ namespace MDAL
                 var DB = mongoClient.GetDatabase(DatabaseName);
                 DB.DropCollection(CollectionName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -289,7 +289,7 @@ namespace MDAL
                 var DB = mongoClient.GetDatabase(DatabaseName);
                 await DB.DropCollectionAsync(CollectionName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -299,7 +299,6 @@ namespace MDAL
         /// </summary>
         public string BackupandDropCollection(string CollectionName, string BatchFilePath, string LogFilePath, string MongoBackupRARPath, string MongoServerPath, string MongoBackupPath, string WinRARPath)
         {
-            Process proc = null;
             try
             {
                 var db = mongoClient.GetDatabase(DatabaseName);
@@ -423,7 +422,7 @@ namespace MDAL
                     return "Backup Complete and Collection Dropped Successfully";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -436,8 +435,6 @@ namespace MDAL
         {
             try
             {
-                Process proc = null;
-
                 string batFileName = "UnzipAndRestore_" + CollectionName + ".bat";
                 string batFilePath = BatchFilePath;
 
@@ -537,7 +534,7 @@ namespace MDAL
                     return "Collection Restored Successfully";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -561,7 +558,7 @@ namespace MDAL
                 exportProcess.Start();
                 exportProcess.WaitForExit();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -591,7 +588,7 @@ namespace MDAL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return bsonDocList.ToJson();
@@ -610,7 +607,7 @@ namespace MDAL
                 var indexModel = new CreateIndexModel<BsonDocument>(indexDOC);
                 collection.Indexes.CreateOne(indexModel);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -626,7 +623,7 @@ namespace MDAL
                 var collection = db.GetCollection<BsonDocument>(CollectionName);
                 collection.Indexes.DropOne(IndexName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -644,7 +641,7 @@ namespace MDAL
                 var indexModel = new CreateIndexModel<BsonDocument>(indexDOC);
                 await collection.Indexes.CreateOneAsync(indexModel).ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -660,7 +657,7 @@ namespace MDAL
                 var collection = db.GetCollection<BsonDocument>(CollectionName);
                 await collection.Indexes.DropOneAsync(IndexName);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -677,7 +674,7 @@ namespace MDAL
                 var stats = DB.RunCommand<BsonDocument>(infoCommand);
                 return stats.ToJson();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return "";
@@ -701,7 +698,7 @@ namespace MDAL
                     documentFieldsList.Add(docObj);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return documentFieldsList;
@@ -785,7 +782,7 @@ namespace MDAL
                 DataTable dt = ToDataTable(parent);
                 ds.Tables.Add(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return ds;
@@ -820,7 +817,7 @@ namespace MDAL
                 DataTable dt = ToDataTable(parent);
                 ds.Tables.Add(dt);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return ds;
@@ -849,7 +846,7 @@ namespace MDAL
                     collection.InsertOne(documnt);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -905,7 +902,7 @@ namespace MDAL
                     var result = collection.UpdateMany(filter, update);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -958,7 +955,7 @@ namespace MDAL
                     var result = collection.ReplaceOne(filter, replacement);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -1014,7 +1011,7 @@ namespace MDAL
                     var result = collection.UpdateMany(filter, update, options);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -1055,7 +1052,7 @@ namespace MDAL
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -1087,7 +1084,7 @@ namespace MDAL
                     result.Rows.Add(row);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             return result;
