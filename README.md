@@ -19,3 +19,12 @@ This file is a C Sharp file. This code snippet mainly focues on helping c# users
 16. Create Index 
 17. Drop Index 
 18. View Index List
+
+
+#Steps
+
+1. Create a Class Library
+2. Install MongoDB Drivers
+3. Start Coding
+
+#Implementation
