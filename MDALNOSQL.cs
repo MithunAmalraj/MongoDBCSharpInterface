@@ -16,7 +16,7 @@ namespace MDAL
 
         public MongoClient mongoClient = new MongoClient();
         private List<IDictionary<string, object>> parent = new List<IDictionary<string, object>>();
-        private string VConfigPath = AppDomain.CurrentDomain.BaseDirectory + @"MConfig.xml";
+        private string MConfigPath = AppDomain.CurrentDomain.BaseDirectory + @"MConfig.xml";
         private string ConnectionString = "";
         private string DatabaseName = "";
 
@@ -29,8 +29,8 @@ namespace MDAL
             try
             {
                 XmlDocument doc = new XmlDocument();
-                doc.Load(VConfigPath);
-                XmlNodeList xNodeList = doc.SelectNodes("/MCONFIG/Item/VDBMongoConnection");
+                doc.Load(MConfigPath);
+                XmlNodeList xNodeList = doc.SelectNodes("/MConfig/Item/MDBMongoConnection");
                 XmlNode connection_string = xNodeList[0];
                 if (connection_string != null)
                 {
@@ -50,8 +50,8 @@ namespace MDAL
             try
             {
                 XmlDocument doc = new XmlDocument();
-                doc.Load(VConfigPath);
-                XmlNodeList xNodeList = doc.SelectNodes("/MCONFIG/Item/" + connenction);
+                doc.Load(MConfigPath);
+                XmlNodeList xNodeList = doc.SelectNodes("/MConfig/Item/" + connenction);
                 XmlNode connection_string = xNodeList[0];
                 if (connection_string != null)
                 {
@@ -713,18 +713,23 @@ namespace MDAL
         public DataSet GetDocuments(MongoCommand cmd, string CollectionName)
         {
             DataSet ds = new DataSet();
+            parent = new List<IDictionary<string, object>>();
             try
             {
                 var DB = mongoClient.GetDatabase(DatabaseName);
                 var collection = DB.GetCollection<BsonDocument>(CollectionName);
                 var filter = new BsonDocument();
                 var sortFilter = "{";
-                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                var projectFilter = "{";
+                if (cmd != null && cmd.FilterParameters != null && cmd.FilterParameters.Count > 0)
                 {
-                    foreach (var item in cmd.Parameters)
+                    foreach (var item in cmd.FilterParameters)
                     {
-                        if (item.value != null && item.value != "")
+                        if (item.value != null && item.value.ToString() != "")
                         {
+                            if (item.value.GetType() == typeof(DateTime))
+                                item.value = DateTime.SpecifyKind(item.value, DateTimeKind.Utc);
+
                             if (item.matchExact == true)
                             {
                                 var multiplefilterObj = new BsonDocument(item.name, item.value);
@@ -736,7 +741,12 @@ namespace MDAL
                                 filter.AddRange(multiplefilterObj);
                             }
                         }
-
+                    }
+                }
+                if (cmd != null && cmd.SortParameters != null && cmd.SortParameters.Count > 0)
+                {
+                    foreach (var item in cmd.SortParameters)
+                    {
                         if (item.isSorted == true)
                         {
                             string AscorDesc = "1";
@@ -749,8 +759,19 @@ namespace MDAL
                         }
                     }
                 }
+                if (cmd != null && cmd.SelectParameters != null && cmd.SelectParameters.Count > 0)
+                {
+                    foreach (var item in cmd.SelectParameters)
+                    {
+                        if (projectFilter != "{")
+                            projectFilter += "," + item.name + ":1";
+                        else
+                            projectFilter += item.name + ":1";
+                    }
+                }
                 sortFilter += "}";
-                using (var cursor = collection.Find(filter).Sort(sortFilter).ToCursor())
+                projectFilter += "}";
+                using (var cursor = collection.Find(filter).Sort(sortFilter).Project(projectFilter).ToCursor())
                 {
                     while (cursor.MoveNext())
                     {
@@ -776,6 +797,7 @@ namespace MDAL
         public DataSet ExecFunction(MongoCommand cmd, string FunctionName)
         {
             DataSet ds = new DataSet();
+            parent = new List<IDictionary<string, object>>();
             try
             {
                 var DB = mongoClient.GetDatabase(DatabaseName);
@@ -818,6 +840,9 @@ namespace MDAL
                 {
                     foreach (var item in cmd.Parameters)
                     {
+                        if (item.value.GetType() == typeof(DateTime))
+                            item.value = DateTime.SpecifyKind(item.value, DateTimeKind.Utc);
+
                         var documntObj = new BsonDocument { { item.name, item.value } };
                         documnt.AddRange(documntObj);
                     }
@@ -841,11 +866,11 @@ namespace MDAL
                 var collection = DB.GetCollection<BsonDocument>(CollectionName);
                 var filter = new BsonDocument();
                 var updateValues = new BsonDocument();
-                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                if (cmd != null && cmd.FilterParameters != null && cmd.FilterParameters.Count > 0)
                 {
-                    foreach (var item in cmd.Parameters)
+                    foreach (var item in cmd.FilterParameters)
                     {
-                        if (item.name != null && item.value != null && item.isFilterCondition == true)
+                        if (item.name != null && item.value != null)
                         {
                             IsAnyFilterConditionGiven = true;
                             if (item.matchExact == true)
@@ -859,17 +884,25 @@ namespace MDAL
                                 filter.AddRange(multiplefilterObj);
                             }
                         }
-                        else if (item.name != null && item.value != null && item.isFilterCondition == false)
+                    }
+                }
+
+                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                {
+                    foreach (var item in cmd.Parameters)
+                    {
+                        if (item.name != null && item.value != null)
                         {
                             var multipleUpdateObj = new BsonDocument(item.name, item.value);
                             updateValues.AddRange(multipleUpdateObj);
                         }
                     }
-                    if (IsAnyFilterConditionGiven == true)
-                    {
-                        var update = new BsonDocument("$set", updateValues);
-                        var result = collection.UpdateMany(filter, update);
-                    }
+                }
+
+                if (IsAnyFilterConditionGiven == true)
+                {
+                    var update = new BsonDocument("$set", updateValues);
+                    var result = collection.UpdateMany(filter, update);
                 }
             }
             catch (Exception ex)
@@ -889,11 +922,11 @@ namespace MDAL
                 var collection = DB.GetCollection<BsonDocument>(CollectionName);
                 var filter = new BsonDocument();
                 var replacement = new BsonDocument();
-                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                if (cmd != null && cmd.FilterParameters != null && cmd.FilterParameters.Count > 0)
                 {
-                    foreach (var item in cmd.Parameters)
+                    foreach (var item in cmd.FilterParameters)
                     {
-                        if (item.name != null && item.value != null && item.isFilterCondition == true)
+                        if (item.name != null && item.value != null)
                         {
                             IsAnyFilterConditionGiven = true;
                             if (item.matchExact == true)
@@ -907,16 +940,22 @@ namespace MDAL
                                 filter.AddRange(multiplefilterObj);
                             }
                         }
-                        else if (item.name != null && item.value != null && item.isFilterCondition == false)
+                    }
+                }
+                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                {
+                    foreach (var item in cmd.Parameters)
+                    {
+                        if (item.name != null && item.value != null)
                         {
                             var replaceObj = new BsonDocument(item.name, item.value);
                             replacement.AddRange(replaceObj);
                         }
                     }
-                    if (IsAnyFilterConditionGiven == true)
-                    {
-                        var result = collection.ReplaceOne(filter, replacement);
-                    }
+                }
+                if (IsAnyFilterConditionGiven == true)
+                {
+                    var result = collection.ReplaceOne(filter, replacement);
                 }
             }
             catch (Exception ex)
@@ -936,11 +975,11 @@ namespace MDAL
                 var collection = DB.GetCollection<BsonDocument>(CollectionName);
                 var filter = new BsonDocument();
                 var updateValues = new BsonDocument();
-                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                if (cmd != null && cmd.FilterParameters != null && cmd.FilterParameters.Count > 0)
                 {
-                    foreach (var item in cmd.Parameters)
+                    foreach (var item in cmd.FilterParameters)
                     {
-                        if (item.name != null && item.value != null && item.isFilterCondition == true)
+                        if (item.name != null && item.value != null)
                         {
                             IsAnyFilterConditionGiven = true;
                             if (item.matchExact == true)
@@ -954,18 +993,25 @@ namespace MDAL
                                 filter.AddRange(multiplefilterObj);
                             }
                         }
-                        else if (item.name != null && item.value != null && item.isFilterCondition == false)
+                    }
+                }
+
+                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                {
+                    foreach (var item in cmd.Parameters)
+                    {
+                        if (item.name != null && item.value != null)
                         {
                             var multipleUpdateObj = new BsonDocument(item.name, item.value);
                             updateValues.AddRange(multipleUpdateObj);
                         }
                     }
-                    if (IsAnyFilterConditionGiven == true)
-                    {
-                        var update = new BsonDocument("$set", updateValues);
-                        var options = new UpdateOptions { IsUpsert = true };
-                        var result = collection.UpdateMany(filter, update, options);
-                    }
+                }
+                if (IsAnyFilterConditionGiven == true)
+                {
+                    var update = new BsonDocument("$set", updateValues);
+                    var options = new UpdateOptions { IsUpsert = true };
+                    var result = collection.UpdateMany(filter, update, options);
                 }
             }
             catch (Exception ex)
@@ -984,11 +1030,11 @@ namespace MDAL
                 var DB = mongoClient.GetDatabase(DatabaseName);
                 var collection = DB.GetCollection<BsonDocument>(CollectionName);
                 var filter = new BsonDocument();
-                if (cmd != null && cmd.Parameters != null && cmd.Parameters.Count > 0)
+                if (cmd != null && cmd.FilterParameters != null && cmd.FilterParameters.Count > 0)
                 {
-                    foreach (var item in cmd.Parameters)
+                    foreach (var item in cmd.FilterParameters)
                     {
-                        if (item.name != null && item.value != null && item.isFilterCondition == true)
+                        if (item.name != null && item.value != null)
                         {
                             IsAnyFilterConditionGiven = true;
                             if (item.matchExact == true)
@@ -1033,7 +1079,10 @@ namespace MDAL
                     var row = result.NewRow();
                     foreach (var key in item.Keys)
                     {
-                        row[key] = item[key];
+                        if (item[key].GetType() == typeof(System.Object[]) && item[key].GetType().IsSerializable == true)
+                            row[key] = item[key].ToJson();
+                        else
+                            row[key] = item[key];
                     }
                     result.Rows.Add(row);
                 }
@@ -1052,10 +1101,16 @@ namespace MDAL
     public class MongoCommand
     {
         public List<MongoParameter> Parameters { get; set; }
+        public List<MongoSelectParameter> SelectParameters { get; set; }
+        public List<MongoFilterParameter> FilterParameters { get; set; }
+        public List<MongoSortParameter> SortParameters { get; set; }
 
         public MongoCommand()
         {
             Parameters = new List<MongoParameter>();
+            SelectParameters = new List<MongoSelectParameter>();
+            FilterParameters = new List<MongoFilterParameter>();
+            SortParameters = new List<MongoSortParameter>();
         }
     }
 
@@ -1063,57 +1118,47 @@ namespace MDAL
     {
         public string name { get; set; }
         public dynamic value { get; set; }
+
+        public MongoParameter(string parameterName, dynamic parameterValue)
+        {
+            name = parameterName;
+            value = parameterValue;
+        }
+    }
+
+    public class MongoSelectParameter
+    {
+        public string name { get; set; }
+
+        public MongoSelectParameter(string parameterName)
+        {
+            name = parameterName;
+        }
+    }
+
+    public class MongoFilterParameter
+    {
+        public string name { get; set; }
+        public dynamic value { get; set; }
         public bool matchExact { get; set; }
-        public bool isFilterCondition { get; set; }
+
+        public MongoFilterParameter(string parameterName, dynamic parameterValue, bool parameterMatchExactValue = true)
+        {
+            name = parameterName;
+            value = parameterValue;
+            matchExact = parameterMatchExactValue;
+        }
+    }
+
+    public class MongoSortParameter
+    {
+        public string name { get; set; }
         public bool isSorted { get; set; }
         public bool isSortedAscorDesc { get; set; } //true -- Asc, false -- desc
 
-        public MongoParameter(string parameterName, object parameterValue)
+        public MongoSortParameter(string parameterName, bool parameterIsSorted = false, bool parameterIsSortedAscorDesc = true)
         {
             name = parameterName;
-            value = parameterValue;
-            matchExact = false;
-            isFilterCondition = false;
-            isSorted = false;
-            isSortedAscorDesc = false;
-        }
-
-        public MongoParameter(string parameterName, dynamic parameterValue, bool parameterMatchExactValue = true)
-        {
-            name = parameterName;
-            value = parameterValue;
-            matchExact = parameterMatchExactValue;
-            isFilterCondition = false;
-            isSorted = false;
-            isSortedAscorDesc = false;
-        }
-
-        public MongoParameter(string parameterName, bool parameterIsSorted = false, bool parameterIsSortedAscorDesc = true)
-        {
-            name = parameterName;
-            value = "";
-            matchExact = false;
-            isFilterCondition = false;
-            isSorted = parameterIsSorted;
-            isSortedAscorDesc = parameterIsSortedAscorDesc;
-        }
-
-        public MongoParameter(string parameterName, dynamic parameterValue, bool parameterMatchExactValue = true, bool parameterIsFilterCondition = false)
-        {
-            name = parameterName;
-            value = parameterValue;
-            matchExact = parameterMatchExactValue;
-            isFilterCondition = parameterIsFilterCondition;
-            isSorted = false;
-            isSortedAscorDesc = false;
-        }
-
-        public MongoParameter(string parameterName, dynamic parameterValue, bool parameterMatchExactValue = true, bool parameterIsSorted = false, bool parameterIsSortedAscorDesc = true)
-        {
-            name = parameterName;
-            value = parameterValue;
-            matchExact = parameterMatchExactValue;
-            isFilterCondition = false;
             isSorted = parameterIsSorted;
             isSortedAscorDesc = parameterIsSortedAscorDesc;
         }
